@@ -3,7 +3,7 @@
  * Plugin Name: A Legal Documents
  * Plugin URI: https://mode.law/plugins/legal-document-automation
  * Description: Automated legal document generation with Webmerge-compatible merge tags, integrating Gravity Forms, MemberPress, and Google Drive.
- * Version: 2.6.0
+ * Version: 2.6.1
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Mode.law
