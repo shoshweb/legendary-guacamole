@@ -3,7 +3,7 @@
  * Plugin Name: A Legal Documents
  * Plugin URI: https://mode.law/plugins/legal-document-automation
  * Description: Automated legal document generation with Webmerge-compatible merge tags, integrating Gravity Forms, MemberPress, and Google Drive.
- * Version: 2.6.1
+ * Version: 2.6.3
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Mode.law
@@ -13,7 +13,7 @@
  * Text Domain: legal-doc-automation
  * Domain Path: /languages
  * Network: false
- * 
+ *
  * @package LegalDocumentAutomation
  */
 
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('LDA_VERSION', '2.6.0');
+define('LDA_VERSION', '2.6.3');
 define('LDA_PLUGIN_FILE', __FILE__);
 define('LDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('LDA_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -274,7 +274,7 @@ class LegalDocumentAutomation {
         $gdrive_method = isset($settings['google_drive_method']) ? $settings['google_drive_method'] : 'native_api';
         
         // Only require Use-your-Drive if it's the selected method or if Google Drive is enabled but no method is set
-        if ($gdrive_method === 'use_your_drive' || 
+        if ($gdrive_method === 'use_your_drive' ||
             (isset($settings['google_drive_enabled']) && $settings['google_drive_enabled'] && $gdrive_method === 'auto')) {
             $required_plugins['use-your-drive/use-your-drive.php'] = 'WP Cloud Plugins - Use-your-Drive';
         }
@@ -538,7 +538,16 @@ class LegalDocumentAutomation {
         if ($user_email) {
             // Get email templates with proper defaults
             $subject_template = !empty($this->settings['email_subject']) ? $this->settings['email_subject'] : 'Your legal document is ready - {FormTitle}';
-            $message_template = !empty($this->settings['email_message']) ? $this->settings['email_message'] : "Dear {UserFirstName},\n\nThank you for your submission. Your legal document \"{FormTitle}\" has been generated and is ready for your review.\n\nPlease find the completed document attached to this email.\n\n{gdrive_docx_link}\n\nBest regards,\n{SiteName}";
+            $message_template = !empty($this->settings['email_message']) ? $this->settings['email_message'] : "Dear {UserFirstName},
+
+Thank you for your submission. Your legal document "{FormTitle}" has been generated and is ready for your review.
+
+Please find the completed document attached to this email.
+
+{gdrive_docx_link}
+
+Best regards,
+{SiteName}";
             
             LDA_Logger::log("Using email subject: " . $subject_template);
             LDA_Logger::log("Using email message: " . substr($message_template, 0, 100) . "...");
@@ -604,17 +613,22 @@ class LegalDocumentAutomation {
 
         // --- Send notification to admin ---
         $admin_subject = "New Document Generated for " . $form['title'];
-        $admin_message = "A new document has been generated from the form '{$form['title']}' (Entry #{$entry['id']}).\n\n";
+        $admin_message = "A new document has been generated from the form '{$form['title']}' (Entry #{$entry['id']}).
+
+";
         if ($user_email) {
-            $admin_message .= "The document was sent to the user at {$user_email}.\n";
+            $admin_message .= "The document was sent to the user at {$user_email}.
+";
         }
         
         // Add file paths to admin message
         if (isset($result['output_path'])) {
-            $admin_message .= "The generated DOCX file is stored at: " . $result['output_path'] . "\n";
+            $admin_message .= "The generated DOCX file is stored at: " . $result['output_path'] . "
+";
         }
         if (isset($result['pdf_path']) && $result['pdf_path']) {
-            $admin_message .= "The generated PDF file is stored at: " . $result['pdf_path'] . "\n";
+            $admin_message .= "The generated PDF file is stored at: " . $result['pdf_path'] . "
+";
         }
 
         $email_handler->send_admin_notification($admin_subject, nl2br($admin_message));
@@ -1121,7 +1135,9 @@ class LegalDocumentAutomation {
                 wp_mkdir_p($dir);
                 
                 // Add .htaccess for security
-                $htaccess_content = "Order deny,allow\nDeny from all\n";
+                $htaccess_content = "Order deny,allow
+Deny from all
+";
                 file_put_contents($dir . '.htaccess', $htaccess_content);
             }
         }
@@ -1137,7 +1153,14 @@ class LegalDocumentAutomation {
             'enabled_forms' => array(),
             'enable_pdf_output' => false,
             'email_subject' => 'Your legal document is ready - {FormTitle}',
-            'email_message' => 'Dear {UserFirstName},\n\nYour legal document "{FormTitle}" has been generated and is ready for your review.\n\nPlease find the completed document attached to this email.\n\nBest regards,\n{SiteName}',
+            'email_message' => 'Dear {UserFirstName},
+
+Your legal document "{FormTitle}" has been generated and is ready for your review.
+
+Please find the completed document attached to this email.
+
+Best regards,
+{SiteName}',
             'from_email' => get_option('admin_email'),
             'from_name' => get_bloginfo('name'),
             'google_drive_enabled' => true,
