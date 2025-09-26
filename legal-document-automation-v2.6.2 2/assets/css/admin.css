@@ -1,0 +1,627 @@
+/* Legal Document Automation - Admin Styles */
+
+.wrap .nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+/* Font size adjustments for Templates tab */
+.test-configuration-title {
+    font-size: 22px !important;
+    font-weight: bold !important;
+    color: #0073aa;
+}
+
+.test-email-label {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Field Mapping Input Placeholders */
+#field_mapping_table input[type="text"]::placeholder {
+    font-family: Arial, sans-serif !important;
+    color: #000000 !important;
+    font-size: 16px !important;
+}
+
+#field_mapping_table input[type="text"]::-webkit-input-placeholder {
+    font-family: Arial, sans-serif !important;
+    color: #000000 !important;
+    font-size: 16px !important;
+}
+
+#field_mapping_table input[type="text"]::-moz-placeholder {
+    font-family: Arial, sans-serif !important;
+    color: #000000 !important;
+    font-size: 16px !important;
+}
+
+#field_mapping_table input[type="text"]:-ms-input-placeholder {
+    font-family: Arial, sans-serif !important;
+    color: #000000 !important;
+    font-size: 16px !important;
+}
+
+/* Field Mapping Form Fields - Arial Font for All Text */
+#field_mapping_table input[type="text"] {
+    font-family: Arial, sans-serif !important;
+    font-size: 16px !important;
+}
+
+#field_mapping_table select {
+    font-family: Arial, sans-serif !important;
+    font-size: 16px !important;
+}
+
+#field_mapping_table input[type="text"]:focus {
+    font-family: Arial, sans-serif !important;
+    font-size: 16px !important;
+}
+
+/* Google Drive Warning Indicator */
+.gdrive-warning-indicator {
+    display: inline-block;
+    background-color: transparent; /* No background */
+    color: #d63638; /* Red text for warning */
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+    box-shadow: none;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.nav-tab:hover .gdrive-warning-indicator {
+    background-color: transparent;
+    color: #b34700;
+}
+
+/* Google Drive Method Sections */
+.gdrive-method-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 15px 0;
+    display: none;
+}
+
+.gdrive-method-section h4 {
+    margin-top: 0;
+    color: #23282d;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.gdrive-method-section h5 {
+    color: #0073aa;
+    margin-bottom: 10px;
+}
+
+.gdrive-method-section ol {
+    margin-left: 20px;
+}
+
+.gdrive-method-section li {
+    margin-bottom: 8px;
+}
+
+.gdrive-method-section .notice {
+    margin: 10px 0;
+}
+
+.gdrive-method-section .notice p {
+    margin: 0;
+}
+
+.tab-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-top: none;
+    margin-top: -1px;
+}
+
+/* Templates Manager Styles */
+.lda-templates-manager {
+    margin-top: 20px;
+}
+
+.template-upload-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.upload-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #f0f0f1;
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #0073aa;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+#upload-result, #validation-results {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.upload-success, .validation-success {
+    background: #d1edff;
+    border-left: 4px solid #0073aa;
+}
+
+.upload-error, .validation-error {
+    background: #fff2f2;
+    border-left: 4px solid #d63638;
+}
+
+.upload-warning, .validation-warning {
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+}
+
+/* Template List Styles */
+.template-list-section {
+    margin-bottom: 30px;
+}
+
+.wp-list-table .button-small {
+    margin-right: 5px;
+}
+
+/* Syntax Reference Styles */
+.syntax-reference {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-top: 30px;
+}
+
+.syntax-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.example-group {
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.example-group h4 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.example-group code {
+    display: block;
+    background: #f6f7f7;
+    padding: 5px 8px;
+    margin: 5px 0;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* Forms Configuration Styles */
+.lda-forms-config {
+    margin-top: 20px;
+}
+
+.form-config-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.form-config-item h4 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.form-config-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Testing Interface Styles */
+.lda-testing-interface {
+    margin-top: 20px;
+}
+
+.testing-section {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.testing-section h3 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+#modifier-test-result, #processing-test-result, #email-test-result, #gdrive-test-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    min-height: 40px;
+}
+
+.test-success {
+    background: #d1edff;
+    border-left: 4px solid #0073aa;
+}
+
+.test-error {
+    background: #fff2f2;
+    border-left: 4px solid #d63638;
+}
+
+.test-warning {
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+}
+
+/* Google Drive Configuration */
+.lda-gdrive-config {
+    margin-top: 20px;
+}
+
+.gdrive-status {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-top: 20px;
+}
+
+.gdrive-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.gdrive-status-item:last-child {
+    border-bottom: none;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.status-ok {
+    background: #46b450;
+}
+
+.status-error {
+    background: #d63638;
+}
+
+.status-warning {
+    background: #dba617;
+}
+
+/* Logs Viewer Styles */
+.lda-logs-viewer {
+    margin-top: 20px;
+}
+
+.logs-controls {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.log-filters {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.log-filters select, .log-filters input {
+    margin-right: 10px;
+}
+
+#logs-display {
+    background: #fff;
+    border: 1px solid #ddd;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 8px 15px;
+    border-bottom: 1px solid #eee;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry.log-error {
+    background: #fff2f2;
+    color: #d63638;
+}
+
+.log-entry.log-warn {
+    background: #fcf9e8;
+    color: #8a6914;
+}
+
+.log-entry.log-info {
+    background: #f0f6fc;
+    color: #0969da;
+}
+
+.log-entry.log-debug {
+    background: #f6f8fa;
+    color: #656d76;
+}
+
+.log-timestamp {
+    color: #57606a;
+    margin-right: 10px;
+}
+
+.log-level {
+    font-weight: bold;
+    margin-right: 10px;
+    min-width: 60px;
+    display: inline-block;
+}
+
+/* System Status Styles */
+.lda-system-status {
+    margin-top: 20px;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.status-card {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.status-card h3 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-value {
+    font-weight: bold;
+}
+
+.system-actions {
+    background: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.system-actions .button {
+    margin: 0 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .syntax-examples {
+        grid-template-columns: 1fr;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-config-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .log-filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Loading Spinner */
+.lda-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Notification Styles */
+.lda-notification {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    background: #fff;
+    border-left: 4px solid #0073aa;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 12px 20px;
+    z-index: 9999;
+    min-width: 300px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.lda-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.lda-notification.success {
+    border-left-color: #46b450;
+}
+
+.lda-notification.error {
+    border-left-color: #d63638;
+}
+
+.lda-notification.warning {
+    border-left-color: #dba617;
+}
+
+.lda-notification-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+}
+
+/* ==========================================================================
+   New User-Requested Styles - 2025-09-09
+   ========================================================================== */
+
+/* General Font Style */
+.wrap.lda-admin-wrap,
+.wrap.lda-admin-wrap h1,
+.wrap.lda-admin-wrap h2,
+.wrap.lda-admin-wrap h3,
+.wrap.lda-admin-wrap h4,
+.wrap.lda-admin-wrap th,
+.wrap.lda-admin-wrap label {
+    font-family: 'Raleway', sans-serif;
+}
+
+/* Main wrapper heading */
+.wrap.lda-admin-wrap h1 {
+    color: #000000;
+    border-bottom-color: #000000;
+}
+
+/* Tab Navigation */
+.wrap.lda-admin-wrap .nav-tab {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000;
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+
+.wrap.lda-admin-wrap .nav-tab:hover {
+    background-color: #e0e0e0;
+}
+
+.wrap.lda-admin-wrap .nav-tab-active,
+.wrap.lda-admin-wrap .nav-tab-active:hover {
+    background-color: #fed919;
+    color: #000000;
+    border-color: #fed919;
+}
+
+/* Buttons */
+.wrap.lda-admin-wrap .button,
+.wrap.lda-admin-wrap .button-primary,
+.wrap.lda-admin-wrap .button-secondary {
+    background: #fed919 !important; /* Use important to override WP defaults */
+    border-color: #e2c217 !important;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000 !important;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+.wrap.lda-admin-wrap .button:hover,
+.wrap.lda-admin-wrap .button-primary:hover,
+.wrap.lda-admin-wrap .button-secondary:hover {
+    background: #e2c217 !important;
+    border-color: #c9ae15 !important;
+    color: #000000 !important;
+}
+
+
+/* Explanatory Text */
+.lda-settings-form > p,
+.lda-card .lda-intro p,
+.lda-card p,
+.lda-card ul li,
+.lda-syntax-guide p {
+    background-color: #ffffff;
+    font-size: 16px;
+    color: #000000;
+}
+
+/* Ensure card content has white background */
+.lda-card, .lda-card .lda-intro {
+    background-color: #ffffff;
+}
