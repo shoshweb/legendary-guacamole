@@ -182,7 +182,7 @@ class LDA_WebmergeDOCX {
             // General-purpose fixer for any {...} block.
             // It finds any content enclosed in curly braces.
             $xml_content = preg_replace_callback(
-                '/\{([^}]+)\}/s',
+                '/\{([^}]+?)\}/s',
                 function($matches) use (&$fixed_count) {
                     $original_content = $matches[1];
                     
