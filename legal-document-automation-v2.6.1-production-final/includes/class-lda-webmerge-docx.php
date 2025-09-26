@@ -19,10 +19,11 @@ class LDA_WebmergeDOCX {
         LDA_Logger::log("Starting Webmerge-compatible DOCX processing");
         LDA_Logger::log("Template: $template_path");
         LDA_Logger::log("Output: $output_path");
+
         // Log merge data summary to avoid truncation
         $merge_summary = array();
         foreach ($merge_data as $key => $value) {
-            if (strlen($value) > 50) {
+            if (is_scalar($value) && strlen($value) > 50) {
                 $merge_summary[$key] = substr($value, 0, 50) . '...';
             } else {
                 $merge_summary[$key] = $value;
@@ -30,39 +31,64 @@ class LDA_WebmergeDOCX {
         }
         LDA_Logger::log("Merge data: " . json_encode($merge_summary, JSON_PRETTY_PRINT));
         
-        // Copy template to output
+        // Copy template to output path
         if (!copy($template_path, $output_path)) {
-            LDA_Logger::log("Failed to copy template to output path");
+            LDA_Logger::error("Failed to copy template to output path: $template_path -> $output_path");
             return array('success' => false, 'error' => 'Failed to copy template to output path');
         }
         
         // Open the DOCX file as a ZIP archive
         $zip = new ZipArchive();
         if ($zip->open($output_path) !== TRUE) {
-            LDA_Logger::log("Failed to open DOCX file as ZIP archive");
+            LDA_Logger::error("Failed to open DOCX file as ZIP archive: $output_path");
             return array('success' => false, 'error' => 'Failed to open DOCX file as ZIP archive');
         }
         
-        // Process the main document XML (original approach that worked)
-        $document_xml = $zip->getFromName('word/document.xml');
-        if ($document_xml === false) {
-            LDA_Logger::log("Failed to read document.xml from DOCX");
-            $zip->close();
-            return array('success' => false, 'error' => 'Failed to read document.xml from DOCX');
-        }
+        // Define all possible XML parts of a DOCX file that can contain user content
+        $xml_parts = array(
+            'word/document.xml',
+            'word/header1.xml', 'word/header2.xml', 'word/header3.xml',
+            'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml',
+        );
         
-        // Process merge tags
-        $processed_xml = self::processMergeTagsInXML($document_xml, $merge_data);
+        $processed_files = 0;
         
-        // Write the processed XML back to the ZIP
-        if ($zip->addFromString('word/document.xml', $processed_xml) === false) {
-            LDA_Logger::log("Failed to write processed document.xml back to DOCX");
-            $zip->close();
-            return array('success' => false, 'error' => 'Failed to write processed document.xml back to DOCX');
+        // Process each XML part
+        foreach ($xml_parts as $part_name) {
+            // Check if the part exists in the archive
+            if ($zip->locateName($part_name) !== false) {
+                $xml_content = $zip->getFromName($part_name);
+                if ($xml_content === false) {
+                    LDA_Logger::warn("Could not read XML part: $part_name");
+                    continue;
+                }
+
+                LDA_Logger::log("Processing XML file: $part_name");
+
+                // Process merge tags in the XML content
+                $processed_xml = self::processMergeTagsInXML($xml_content, $merge_data);
+
+                // Write the processed XML back to the archive
+                if ($zip->addFromString($part_name, $processed_xml) === false) {
+                    LDA_Logger::error("Failed to write processed XML back to DOCX for part: $part_name");
+                    $zip->close();
+                    return array('success' => false, 'error' => "Failed to write processed XML for $part_name");
+                }
+
+                $processed_files++;
+                LDA_Logger::log("Processed XML file: $part_name");
+            }
         }
         
         $zip->close();
-        LDA_Logger::log("Webmerge-compatible DOCX processing completed successfully");
+
+        LDA_Logger::log("Enhanced DOCX processing completed. Processed $processed_files XML files");
+
+        if ($processed_files === 0) {
+            LDA_Logger::error("No XML parts were processed. The document may be empty or corrupt.");
+            return array('success' => false, 'error' => 'No content found to process in the DOCX file.');
+        }
+
         return array('success' => true, 'file_path' => $output_path);
     }
     
