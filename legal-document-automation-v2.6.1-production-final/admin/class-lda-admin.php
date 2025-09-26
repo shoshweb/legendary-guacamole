@@ -2882,7 +2882,14 @@ class LDA_Admin {
             'UserFirstName' => 'John',
             'UserLastName' => 'Smith',
             'CounterpartyFirstName' => 'Jane',
-            'CounterpartyLastName' => 'Doe'
+            'CounterpartyLastName' => 'Doe',
+
+            // Add data for conditional logic testing based on user feedback
+            'Pmt_Services' => 'yes1',
+            'Pmt_Agreements' => 'no', // Set to a non-matching value to test 'false' condition
+            'Pmt_Other' => 'yes4',
+            'Pmt_Relations' => 'yes3',
+            'Pmt_Purpose' => 'This is the test purpose for the agreement.'
         );
     }
 
