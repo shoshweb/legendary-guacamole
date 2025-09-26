@@ -2158,7 +2158,7 @@ class LDA_Admin {
 
     public function handleAjaxTestTemplate() {
         try {
-        check_ajax_referer('lda_admin_nonce', 'nonce');
+            check_ajax_referer('lda_admin_nonce', 'nonce');
             
             if (!current_user_can('manage_options')) {
                 wp_send_json_error('Insufficient permissions');
@@ -2175,9 +2175,19 @@ class LDA_Admin {
                 wp_send_json_error('Template file not found');
             }
             
-            // Create sample merge data for testing
+            // Create sample merge data and add the associated form_id if it exists
             $sample_data = $this->generateSampleMergeData();
             
+            $template_assignments = get_option('lda_template_assignments', array());
+            $assigned_form_id = array_search($template_file, $template_assignments);
+
+            if ($assigned_form_id) {
+                LDA_Logger::log("Test initiated for template '{$template_file}' assigned to form ID: {$assigned_form_id}.");
+                $sample_data['form_id'] = $assigned_form_id;
+            } else {
+                LDA_Logger::log("Test initiated for template '{$template_file}' with no assigned form. Field mappings will not be applied.");
+            }
+
             // Test the merge process
             $upload_dir = wp_upload_dir();
             if (empty($upload_dir['basedir'])) {

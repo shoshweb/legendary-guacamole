@@ -165,271 +165,179 @@ class LDA_WebmergeDOCX {
     }
     
     /**
-     * Fix split merge tags that are broken across XML elements
+     * Fix split merge tags that are broken across XML elements.
+     * This new function is more robust and handles all tag types ({$var}, {if...}, {/if}, etc.).
      */
     private static function fixSplitMergeTags($xml_content) {
-        LDA_Logger::log("Fixing split merge tags in XML");
-        
+        LDA_Logger::log("Fixing split merge tags in XML (Enhanced Method)");
+
         $fixed_count = 0;
-        $max_iterations = 10; // Prevent infinite loops
+        $max_iterations = 5; // Usually one is enough, but let's be safe.
         $iteration = 0;
-        
-        // Debug: Log a sample of the XML content to see what we're working with
-        $sample = substr($xml_content, 0, 500);
-        LDA_Logger::log("XML sample (first 500 chars): " . $sample);
-        
+
         while ($iteration < $max_iterations) {
             $iteration++;
-            $found_split = false;
-            
-            // Pattern 1: Simple split across w:t elements
-            // Matches: {$USR_</w:t></w:r>...<w:t>Business}
-            $pattern1 = '/\{\$([^<]*?)<\/w:t><\/w:r>(?:[^<]*?<w:r[^>]*>[^<]*?<w:t[^>]*>([^<]*?))+\}/';
-            
-            if (preg_match($pattern1, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_parts = array();
-                
-                // Extract all parts of the split tag
-                preg_match_all('/\{\$([^<]*?)<\/w:t><\/w:r>(?:[^<]*?<w:r[^>]*>[^<]*?<w:t[^>]*>([^<]*?))+\}/', $full_match, $parts);
-                
-                if (!empty($parts[1]) && !empty($parts[2])) {
-                    // Reconstruct the complete tag
-                    $complete_tag = '{$' . $parts[1][0] . implode('', $parts[2]) . '}';
+            $before_content = $xml_content;
+
+            // General-purpose fixer for any {...} block.
+            // It finds any content enclosed in curly braces.
+            $xml_content = preg_replace_callback(
+                '/\{([^}]+)\}/s',
+                function($matches) use (&$fixed_count) {
+                    $original_content = $matches[1];
                     
-                    // Replace the split tag with the complete one
-                    $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                    $fixed_count++;
-                    $found_split = true;
+                    // If the content inside braces contains XML tags, it's a split tag.
+                    if (strpos($original_content, '<') !== false) {
+                        // To fix it, we simply strip all XML tags from the content.
+                        $cleaned_content = preg_replace('/<[^>]+>/s', '', $original_content);
+                        // Also, consolidate whitespace that might result from stripping tags.
+                        $cleaned_content = trim(preg_replace('/\s+/', ' ', $cleaned_content));
+
+                        // Only log if a change was actually made.
+                        if ($original_content !== $cleaned_content) {
+                            $fixed_count++;
+                            LDA_Logger::log("Fixed split tag: {" . substr($original_content, 0, 100) . "} -> {" . $cleaned_content . "}");
+                            return '{' . $cleaned_content . '}';
+                        }
+                    }
                     
-                    LDA_Logger::log("Fixed split merge tag (pattern 1): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
+                    // Not a split tag or no change needed, return the original match.
+                    return '{' . $original_content . '}';
                 }
-            }
-            
-            // Pattern 1b: Specific pattern for Login_ID and similar tags
-            // Matches: {$</w:t></w:r><w:proofErr...><w:r...><w:t>Login_ID}
-            $pattern1b = '/\{\$<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern1b, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_name = $matches[1];
-                $complete_tag = '{$' . $tag_name . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 1b): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 2: Complex split with proofErr and other elements
-            // Matches: {$</w:t></w:r><w:proofErr...><w:r...><w:t>Login_ID}
-            $pattern2 = '/\{\$<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([^<]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern2, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_name = $matches[1];
-                $complete_tag = '{$' . $tag_name . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 2): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 2b: Split with proofErr and xml:space="preserve"
-            // Matches: {$DISPLAY_</w:t></w:r><w:proofErr...><w:t xml:space="preserve">EMAIL}
-            $pattern2b = '/\{\$([^<]*?)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([^<]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern2b, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 2b): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 3: More complex split with multiple XML elements
-            // Matches patterns like {$USR_</w:t></w:r><w:proofErr...><w:r...><w:t>Business}
-            $pattern3 = '/\{\$([^<]*?)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([^<]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern3, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 3): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 4: Specific pattern for Signatory tags
-            // Matches: {$USR_</w:t></w:r><w:r...>Signatory_FN}
-            $pattern4 = '/\{\$([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern4, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 4): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 5: Nuclear option - find any {$...} that contains XML elements
-            // This catches any merge tag that has been split by XML elements
-            $pattern5 = '/\{\$([^}]*?)(?:<[^>]*>)+([^}]*?)\}/';
-            
-            if (preg_match($pattern5, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                
-                // Only fix if it looks like a real merge tag (not just random XML)
-                if (preg_match('/^[A-Za-z0-9_]+$/', $tag_part1 . $tag_part2)) {
-                    $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                    
-                    // Replace the split tag with the complete one
-                    $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                    $fixed_count++;
-                    $found_split = true;
-                    
-                    LDA_Logger::log("Fixed split merge tag (pattern 5): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-                }
-            }
-            
-            // Pattern 6: Ultra-aggressive pattern for the specific cases we're seeing
-            // This will catch patterns like {$DISPLAY_</w:t></w:r><w:proofErr...>EMAIL}
-            $pattern6 = '/\{\$([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern6, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 6): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // Pattern 7: Even more aggressive - catch any split merge tag
-            // This will catch the exact patterns from the logs
-            $pattern7 = '/\{\$([A-Za-z0-9_]*?)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>([A-Za-z0-9_]+)<\/w:t><\/w:r>(?:<[^>]*>)*<w:r[^>]*>(?:<[^>]*>)*<w:t[^>]*>\}/';
-            
-            if (preg_match($pattern7, $xml_content, $matches)) {
-                $full_match = $matches[0];
-                $tag_part1 = $matches[1];
-                $tag_part2 = $matches[2];
-                $complete_tag = '{$' . $tag_part1 . $tag_part2 . '}';
-                
-                // Replace the split tag with the complete one
-                $xml_content = str_replace($full_match, $complete_tag, $xml_content);
-                $fixed_count++;
-                $found_split = true;
-                
-                LDA_Logger::log("Fixed split merge tag (pattern 7): " . substr($full_match, 0, 100) . "... -> " . $complete_tag);
-            }
-            
-            // If no split tags were found in this iteration, we're done
-            if (!$found_split) {
+            );
+
+            // If no changes were made in this iteration, the document is clean and we can stop.
+            if ($xml_content === $before_content) {
                 break;
             }
         }
-        
-        LDA_Logger::log("Fixed {$fixed_count} split merge tags in {$iteration} iterations");
+
+        LDA_Logger::log("Fixed {$fixed_count} split tags in {$iteration} iteration(s).");
         return $xml_content;
     }
     
     /**
-     * Process conditional logic like {if !empty($VARIABLE)}...{/if}
+     * Process conditional logic like {if ...}, {elseif ...}, {else}, {/if}
+     * This advanced processor handles nested blocks and complex conditions.
      */
     private static function processConditionalLogic($xml_content, $merge_data, &$replacements_made) {
-        try {
-            LDA_Logger::log("Processing conditional logic in XML");
+        LDA_Logger::log("Processing conditional logic (Advanced)");
+
+        $max_iterations = 20; // Safety break for deep nesting or errors
+        $iteration = 0;
+
+        // This pattern finds the innermost conditional blocks first.
+        // It uses a backreference \1 to ensure {if} is closed by {/if} and {listif} by {/listif}.
+        $pattern = '/\{(if|listif)\s+([^}]+)\}((?:[^{}]|\{(?!\/?\1\b))*?)\{\/\1\}/s';
+
+        while (preg_match($pattern, $xml_content) && $iteration < $max_iterations) {
+            $iteration++;
             
-            // Pattern to match {if !empty($VARIABLE)}...{/if} blocks
-            $conditional_pattern = '/\{if\s+!empty\(\$([^)]+)\)\}(.*?)\{\/if\}/s';
-            
-            $xml_content = preg_replace_callback($conditional_pattern, function($matches) use ($merge_data, &$replacements_made) {
-                try {
-                    $variable = trim($matches[1]);
-                    $content = $matches[2];
-                    
-                    // Get the value for the variable
-                    $value = self::getMergeTagValue($variable, $merge_data);
-                    
-                    if (!empty($value)) {
-                        LDA_Logger::log("Conditional block for {\$$variable} is TRUE, including content");
-                        $replacements_made++;
-                        return $content; // Include the content
-                    } else {
-                        LDA_Logger::log("Conditional block for {\$$variable} is FALSE, removing content");
-                        $replacements_made++;
-                        return ''; // Remove the content
-                    }
-                } catch (Exception $e) {
-                    LDA_Logger::error("Error processing conditional logic: " . $e->getMessage());
-                    return $matches[0]; // Return original content on error
+            $xml_content = preg_replace_callback($pattern, function($matches) use ($merge_data, &$replacements_made) {
+                $tag_type = $matches[1]; // 'if' or 'listif'
+                $main_condition = $matches[2];
+                $inner_content = $matches[3];
+
+                // Evaluate the main {if} condition
+                if (self::evaluateCondition($main_condition, $merge_data)) {
+                    LDA_Logger::log("Conditional TRUE: {{$tag_type} {$main_condition}}");
+                    // Condition is true, so we only need the content before the first {else} or {elseif}.
+                    $content_parts = preg_split('/\{(elseif|else)/s', $inner_content, 2);
+                    $replacements_made++;
+                    return $content_parts[0];
                 }
-            }, $xml_content);
-        } catch (Exception $e) {
-            LDA_Logger::error("Error in processConditionalLogic: " . $e->getMessage());
-            return $xml_content; // Return original content on error
+
+                // Main condition is false, check for {elseif} and {else} clauses.
+                // Pattern to find all {elseif ...} and {else} clauses within the block.
+                preg_match_all('/\{(elseif\s+([^}]+)|else)\}(.*?)(?=\{(?:elseif|else)\}|\z)/s', $inner_content, $clause_matches, PREG_SET_ORDER);
+
+                foreach ($clause_matches as $clause) {
+                    $is_elseif = strpos($clause[1], 'elseif') === 0;
+                    if ($is_elseif) {
+                        $elseif_condition = $clause[2];
+                        if (self::evaluateCondition($elseif_condition, $merge_data)) {
+                            LDA_Logger::log("Conditional TRUE: {elseif {$elseif_condition}}");
+                            $replacements_made++;
+                            return $clause[3]; // Return the content of this true elseif
+                        }
+                    } else { // It's an {else}
+                        LDA_Logger::log("Conditional ELSE triggered.");
+                        $replacements_made++;
+                        return $clause[3]; // Return the content of the else block
+                    }
+                }
+
+                // All conditions were false, remove the entire block.
+                LDA_Logger::log("All conditionals FALSE for {{$tag_type} {$main_condition}}. Removing block.");
+                $replacements_made++;
+                return '';
+
+            }, $xml_content, 1); // Limit to 1 replacement per iteration to handle nesting correctly.
         }
-        
-        // Also handle simple {if $VARIABLE}...{/if} patterns
-        try {
-            $simple_conditional_pattern = '/\{if\s+\$([^}]+)\}(.*?)\{\/if\}/s';
-            
-            $xml_content = preg_replace_callback($simple_conditional_pattern, function($matches) use ($merge_data, &$replacements_made) {
-                try {
-                    $variable = trim($matches[1]);
-                    $content = $matches[2];
-                    
-                    // Get the value for the variable
-                    $value = self::getMergeTagValue($variable, $merge_data);
-                    
-                    if (!empty($value)) {
-                        LDA_Logger::log("Simple conditional block for {\$$variable} is TRUE, including content");
-                        $replacements_made++;
-                        return $content; // Include the content
-                    } else {
-                        LDA_Logger::log("Simple conditional block for {\$$variable} is FALSE, removing content");
-                        $replacements_made++;
-                        return ''; // Remove the content
-                    }
-                } catch (Exception $e) {
-                    LDA_Logger::error("Error processing simple conditional logic: " . $e->getMessage());
-                    return $matches[0]; // Return original content on error
-                }
-            }, $xml_content);
-        } catch (Exception $e) {
-            LDA_Logger::error("Error in simple conditional processing: " . $e->getMessage());
+
+        if ($iteration >= $max_iterations) {
+            LDA_Logger::error("Exceeded max iterations in conditional logic processing. Check for unclosed tags or infinite loops in template.");
         }
         
         return $xml_content;
+    }
+
+    /**
+     * Evaluate a condition string from the template.
+     * Handles `and`, `==`, `!=`, `empty()`, `!empty()`, and simple variable checks.
+     */
+    private static function evaluateCondition($condition, $merge_data) {
+        $condition = trim($condition);
+        LDA_Logger::log("Evaluating condition: [{$condition}]");
+
+        // Split by 'and' or '&&' to evaluate each part of the condition.
+        $sub_conditions = preg_split('/\s+(and|&&)\s+/i', $condition);
+
+        foreach ($sub_conditions as $sub_c) {
+            $sub_c = trim($sub_c);
+            $result = false;
+
+            // Check for empty($VAR) or !empty($VAR)
+            if (preg_match('/^(!?)\s*empty\(\$([a-zA-Z0-9_]+)\)$/', $sub_c, $matches)) {
+                $negation = $matches[1] === '!';
+                $variable_name = $matches[2];
+                $value = self::getMergeTagValue($variable_name, $merge_data);
+                $is_empty = (empty($value) || $value === '');
+                $result = $negation ? !$is_empty : $is_empty;
+            }
+            // Check for comparisons like $VAR == "string" or $VAR != 'string'
+            else if (preg_match('/^\$([a-zA-Z0-9_]+)\s*(==|!=)\s*["\'](.*?)["\']$/', $sub_c, $matches)) {
+                $variable_name = $matches[1];
+                $operator = $matches[2];
+                $literal_value = $matches[3];
+                $actual_value = self::getMergeTagValue($variable_name, $merge_data);
+                if ($operator === '==') {
+                    $result = (strval($actual_value) == strval($literal_value));
+                } else { // !=
+                    $result = (strval($actual_value) != strval($literal_value));
+                }
+            }
+            // Check for simple variable existence like {$VAR}
+            else if (preg_match('/^\$([a-zA-Z0-9_]+)$/', $sub_c, $matches)) {
+                $variable_name = $matches[1];
+                $actual_value = self::getMergeTagValue($variable_name, $merge_data);
+                $result = !empty($actual_value) && $actual_value !== '';
+            }
+            else {
+                LDA_Logger::warn("Could not parse sub-condition: [{$sub_c}]");
+                return false; // Fail safe to false
+            }
+
+            // If any part of an AND chain is false, the whole condition is false.
+            if (!$result) {
+                LDA_Logger::log("Sub-condition [{$sub_c}] evaluated to FALSE. Entire condition is FALSE.");
+                return false;
+            }
+        }
+        
+        // If the loop completes, all sub-conditions were true.
+        LDA_Logger::log("All sub-conditions evaluated to TRUE for [{$condition}]. Entire condition is TRUE.");
+        return true;
     }
     
     /**
